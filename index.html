@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Vehículos</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f4; }
+    h1 { text-align: center; }
+    form, .buscador, .tabla {
+      background: white; padding: 20px; margin-bottom: 20px;
+      border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    label { display: block; margin-top: 10px; }
+    input { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; }
+    button {
+      margin-top: 15px; padding: 10px 15px; border: none;
+      background: #0078d7; color: white; font-size: 14px; border-radius: 5px; cursor: pointer;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #0078d7; color: white; }
+  </style>
+</head>
+<body>
+  <h1>Registro de Vehículos</h1>
+
+  <!-- Formulario -->
+  <form id="registroForm">
+    <label>Patente: <input type="text" id="patente" required></label>
+    <label>Color: <input type="text" id="color" required></label>
+    <label>Marca: <input type="text" id="marca" required></label>
+    <label>Modelo: <input type="text" id="modelo" required></label>
+    <label>Dueño: <input type="text" id="dueno" required></label>
+    <label>Parcela: <input type="text" id="parcela" required></label>
+    <button type="submit">Agregar Vehículo</button>
+  </form>
+
+  <!-- Buscador -->
+  <div class="buscador">
+    <h2>Buscar por Patente</h2>
+    <input type="text" id="buscarPatente" placeholder="Ingrese patente...">
+    <button onclick="buscarVehiculo()">Buscar</button>
+    <p id="resultadoBusqueda"></p>
+  </div>
+
+  <!-- Tabla -->
+  <div class="tabla">
+    <h2>Listado de Vehículos</h2>
+    <table id="tablaVehiculos">
+      <thead>
+        <tr>
+          <th>Patente</th><th>Color</th><th>Marca</th><th>Modelo</th><th>Dueño</th><th>Parcela</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js"></script>
+  <script>
+    // 🔹 CONFIGURACIÓN DE FIREBASE (reemplaza con tus datos)
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "registro-vehiculos.firebaseapp.com",
+      databaseURL: "https://registro-vehiculos-default-rtdb.firebaseio.com",
+      projectId: "registro-vehiculos",
+      storageBucket: "Registro-vehiculos.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdefg"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const form = document.getElementById("registroForm");
+    const tabla = document.querySelector("#tablaVehiculos tbody");
+    const salidaBusqueda = document.getElementById("resultadoBusqueda");
+
+    // Guardar vehículo
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const patente = document.getElementById("patente").value.toUpperCase();
+      const nuevo = {
+        color: document.getElementById("color").value,
+        marca: document.getElementById("marca").value,
+        modelo: document.getElementById("modelo").value,
+        dueno: document.getElementById("dueno").value,
+        parcela: document.getElementById("parcela").value
+      };
+      db.ref("vehiculos/" + patente).set(nuevo);
+      form.reset();
+    });
+
+    // Mostrar en tabla en tiempo real
+    db.ref("vehiculos").on("value", snapshot => {
+      tabla.innerHTML = "";
+      snapshot.forEach(child => {
+        const v = child.val();
+        const fila = `<tr>
+          <td>${child.key}</td>
+          <td>${v.color}</td>
+          <td>${v.marca}</td>
+          <td>${v.modelo}</td>
+          <td>${v.dueno}</td>
+          <td>${v.parcela}</td>
+        </tr>`;
+        tabla.innerHTML += fila;
+      });
+    });
+
+    // Buscar vehículo
+    function buscarVehiculo() {
+      const patente = document.getElementById("buscarPatente").value.toUpperCase();
+      db.ref("vehiculos/" + patente).once("value").then(snapshot => {
+        if (snapshot.exists()) {
+          const v = snapshot.val();
+          salidaBusqueda.innerHTML = `✅ Encontrado: ${v.marca} ${v.modelo}, dueño ${v.dueno}, parcela ${v.parcela}`;
+        } else {
+          salidaBusqueda.innerHTML = "❌ No existe un vehículo con esa patente.";
+        }
+      });
+    }
+  </script>
+</body>
+</html>
