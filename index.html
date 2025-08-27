@@ -15,6 +15,8 @@
       width: 100%; padding: 8px; margin-top: 4px;
       border: 1px solid #ccc; border-radius: 4px;
     }
+    /* 🔹 Siempre en mayúscula el campo Patente y Buscador */
+    #patente, #buscarPatente { text-transform: uppercase; }
     button {
       margin-top: 15px; padding: 10px 15px; border: none;
       background: #0078d7; color: white; font-size: 14px;
@@ -128,7 +130,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
-    // 🔹 Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBMNHZ3brOVB2ZSrRH3h5IDRc7SFsHlkFY",
       authDomain: "registro-vehiculos-fbbba.firebaseapp.com",
@@ -145,7 +146,14 @@
     const tabla = document.querySelector("#tablaVehiculos tbody");
     const salidaBusqueda = document.getElementById("resultadoBusqueda");
 
-    // Mostrar / ocultar "otro"
+    // 🔹 Forzar mayúsculas al escribir en patente
+    document.getElementById("patente").addEventListener("input", function() {
+      this.value = this.value.toUpperCase();
+    });
+    document.getElementById("buscarPatente").addEventListener("input", function() {
+      this.value = this.value.toUpperCase();
+    });
+
     function toggleOtro(campo) {
       const select = document.getElementById(campo);
       const input = document.getElementById(campo + "_otro");
@@ -158,7 +166,6 @@
       }
     }
 
-    // Agregar opción nueva y guardar en Firebase
     function agregarOpcion(selectId, valor) {
       const select = document.getElementById(selectId);
       let existe = false;
@@ -178,7 +185,6 @@
       }
     }
 
-    // Cargar listas desde Firebase al inicio
     function cargarListas() {
       ["marca", "modelo", "color"].forEach(lista => {
         db.ref("listas/" + lista).once("value", snapshot => {
@@ -192,7 +198,6 @@
     }
     cargarListas();
 
-    // Guardar vehículo
     form.addEventListener("submit", e => {
       e.preventDefault();
       let marca = document.getElementById("marca").value;
@@ -226,7 +231,6 @@
       form.reset();
     });
 
-    // Mostrar en tabla
     db.ref("vehiculos").on("value", snapshot => {
       tabla.innerHTML = "";
       snapshot.forEach(child => {
@@ -251,7 +255,6 @@
       });
     });
 
-    // Buscar vehículo
     function buscarVehiculo() {
       const patente = document.getElementById("buscarPatente").value.toUpperCase();
       db.ref("vehiculos/" + patente).once("value").then(snapshot => {
@@ -264,25 +267,10 @@
       });
     }
 
-    // Admin login simple (puedes cambiar la clave)
-    function loginAdmin() {
-      const pass = document.getElementById("adminPass").value;
-      if (pass === "admin123") {
-        esAdmin = true;
-        document.getElementById("estadoAdmin").textContent = "Acceso concedido ✅";
-        // refrescar tabla para mostrar botones
-        db.ref("vehiculos").once("value", () => {});
-      } else {
-        alert("Contraseña incorrecta");
-      }
-    }
-
-    // Autorizar
     function autorizarVehiculo(patente) {
       db.ref("vehiculos/" + patente + "/estado").set("autorizado");
     }
 
-    // Eliminar
     function eliminarVehiculo(patente) {
       if (confirm("¿Seguro que deseas eliminar " + patente + "?")) {
         db.ref("vehiculos/" + patente).remove();
@@ -291,5 +279,3 @@
   </script>
 </body>
 </html>
-
-
