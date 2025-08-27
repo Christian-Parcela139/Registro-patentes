@@ -1,297 +1,302 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Registro de Vehículos</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f4; }
-    h1 { text-align: center; }
-    form, .buscador, .tabla {
-      background: white; padding: 20px; margin-bottom: 20px;
-      border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    label { display: block; margin-top: 10px; }
-    input, select {
-      width: 100%; padding: 8px; margin-top: 4px;
-      border: 1px solid #ccc; border-radius: 4px;
-    }
-    /* 🔹 Siempre en mayúscula el campo Patente y Buscador */
-    #patente, #buscarPatente { text-transform: uppercase; }
-    button {
-      margin-top: 15px; padding: 10px 15px; border: none;
-      background: #0078d7; color: white; font-size: 14px;
-      border-radius: 5px; cursor: pointer;
-    }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background: #0078d7; color: white; }
-    .pendiente { background: #fff3cd; }
-    .autorizado { background: #d4edda; }
-  </style>
+<meta charset="UTF-8">
+<title>Registro de Vehículos</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f4; }
+h1 { text-align: center; }
+form, .buscador, .tabla, .adminLogin {
+  background: white; padding: 20px; margin-bottom: 20px;
+  border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+label { display: block; margin-top: 10px; }
+input, select {
+  width: 100%; padding: 8px; margin-top: 4px;
+  border: 1px solid #ccc; border-radius: 4px;
+}
+#patente, #buscarPatente { text-transform: uppercase; }
+button {
+  margin-top: 15px; padding: 10px 15px; border: none;
+  background: #0078d7; color: white; font-size: 14px;
+  border-radius: 5px; cursor: pointer;
+}
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+th { background: #0078d7; color: white; }
+.pendiente { background: #fff3cd; }
+.autorizado { background: #d4edda; }
+.adminStatus { font-weight: bold; margin-top: 10px; color: green; }
+</style>
 </head>
 <body>
-  <h1>Registro de Vehículos</h1>
 
-  <!-- Formulario -->
-  <form id="registroForm">
-    <label>Propietario:
-      <input type="text" id="dueno" required>
-    </label>
+<h1>Registro de Vehículos</h1>
 
-    <label>Parcela:
-      <input type="text" id="parcela" required>
-    </label>
+<!-- Login administrador -->
+<div class="adminLogin">
+  <label>Contraseña Admin:
+    <input type="password" id="adminPass">
+  </label>
+  <button onclick="loginAdmin()">Iniciar Sesión Admin</button>
+  <span id="estadoAdmin" class="adminStatus"></span>
+</div>
 
-    <label>Patente vehículo:
-      <input type="text" id="patente" required>
-    </label>
+<!-- Formulario -->
+<form id="registroForm">
+  <label>Propietario:<input type="text" id="dueno" required></label>
+  <label>Parcela:<input type="text" id="parcela" required></label>
+  <label>Patente vehículo:<input type="text" id="patente" required></label>
 
-    <label>Marca:
-      <select id="marca" required onchange="toggleOtro('marca')">
-        <option value="">Seleccione marca...</option>
-        <option value="Toyota">Toyota</option>
-        <option value="Nissan">Nissan</option>
-        <option value="Hyundai">Hyundai</option>
-        <option value="Chevrolet">Chevrolet</option>
-        <option value="Kia">Kia</option>
-        <option value="Ford">Ford</option>
-        <option value="Suzuki">Suzuki</option>
-        <option value="Volkswagen">Volkswagen</option>
-        <option value="Honda">Honda</option>
-        <option value="Mitsubishi">Mitsubishi</option>
-        <option value="Peugeot">Peugeot</option>
-        <option value="Renault">Renault</option>
-        <option value="otro">Ingresar otro...</option>
-      </select>
-      <input type="text" id="marca_otro" placeholder="Escriba la marca" style="display:none; margin-top:5px;">
-    </label>
+  <label>Marca:
+    <select id="marca" required onchange="cargarModelos(); toggleOtro('marca')">
+      <option value="">Seleccione marca...</option>
+      <option value="Toyota">Toyota</option>
+      <option value="Nissan">Nissan</option>
+      <option value="Hyundai">Hyundai</option>
+      <option value="Chevrolet">Chevrolet</option>
+      <option value="Kia">Kia</option>
+      <option value="Ford">Ford</option>
+      <option value="Suzuki">Suzuki</option>
+      <option value="Volkswagen">Volkswagen</option>
+      <option value="Honda">Honda</option>
+      <option value="Mitsubishi">Mitsubishi</option>
+      <option value="Peugeot">Peugeot</option>
+      <option value="Renault">Renault</option>
+      <option value="otro">Ingresar otro...</option>
+    </select>
+    <input type="text" id="marca_otro" placeholder="Escriba la marca" style="display:none; margin-top:5px;">
+  </label>
 
-    <label>Modelo:
-      <select id="modelo" required onchange="toggleOtro('modelo')">
-        <option value="">Seleccione modelo...</option>
-        <option value="otro">Ingresar otro...</option>
-      </select>
-      <input type="text" id="modelo_otro" placeholder="Escriba el modelo" style="display:none; margin-top:5px;">
-    </label>
+  <label>Modelo:
+    <select id="modelo" required onchange="toggleOtro('modelo')">
+      <option value="">Seleccione modelo...</option>
+      <option value="otro">Ingresar otro...</option>
+    </select>
+    <input type="text" id="modelo_otro" placeholder="Escriba el modelo" style="display:none; margin-top:5px;">
+  </label>
 
-    <label>Color:
-      <select id="color" required onchange="toggleOtro('color')">
-        <option value="">Seleccione color...</option>
-        <option value="Blanco">Blanco</option>
-        <option value="Negro">Negro</option>
-        <option value="Gris">Gris</option>
-        <option value="Plata">Plata</option>
-        <option value="Rojo">Rojo</option>
-        <option value="Azul">Azul</option>
-        <option value="Verde">Verde</option>
-        <option value="Amarillo">Amarillo</option>
-        <option value="Marrón">Marrón</option>
-        <option value="Naranjo">Naranjo</option>
-        <option value="otro">Ingresar otro...</option>
-      </select>
-      <input type="text" id="color_otro" placeholder="Escriba el color" style="display:none; margin-top:5px;">
-    </label>
+  <label>Color:
+    <select id="color" required onchange="toggleOtro('color')">
+      <option value="">Seleccione color...</option>
+      <option value="Blanco">Blanco</option>
+      <option value="Negro">Negro</option>
+      <option value="Gris">Gris</option>
+      <option value="Plata">Plata</option>
+      <option value="Rojo">Rojo</option>
+      <option value="Azul">Azul</option>
+      <option value="Verde">Verde</option>
+      <option value="Amarillo">Amarillo</option>
+      <option value="Marrón">Marrón</option>
+      <option value="Naranjo">Naranjo</option>
+      <option value="otro">Ingresar otro...</option>
+    </select>
+    <input type="text" id="color_otro" placeholder="Escriba el color" style="display:none; margin-top:5px;">
+  </label>
 
-    <label>Uso:
-      <select id="uso" required>
-        <option value="">Seleccione uso...</option>
-        <option value="Personal">Personal</option>
-        <option value="Visita">Visita</option>
-        <option value="Trabajador">Trabajador</option>
-      </select>
-    </label>
+  <label>Uso:
+    <select id="uso" required>
+      <option value="">Seleccione uso...</option>
+      <option value="Personal">Personal</option>
+      <option value="Visita">Visita</option>
+      <option value="Trabajador">Trabajador</option>
+    </select>
+  </label>
 
-    <button type="submit">Agregar Vehículo</button>
-  </form>
+  <button type="submit">Agregar Vehículo</button>
+</form>
 
-  <!-- Buscador -->
-  <div class="buscador">
-    <h2>Buscar por Patente</h2>
-    <input type="text" id="buscarPatente" placeholder="Ingrese patente...">
-    <button onclick="buscarVehiculo()">Buscar</button>
-    <p id="resultadoBusqueda"></p>
-  </div>
+<!-- Buscador -->
+<div class="buscador">
+  <h2>Buscar por Patente</h2>
+  <input type="text" id="buscarPatente" placeholder="Ingrese patente...">
+  <button onclick="buscarVehiculo()">Buscar</button>
+  <p id="resultadoBusqueda"></p>
+</div>
 
-  <!-- Tabla -->
-  <div class="tabla">
-    <h2>Listado de Vehículos</h2>
-    <table id="tablaVehiculos">
-      <thead>
-        <tr>
-          <th>Propietario</th><th>Parcela</th><th>Patente</th>
-          <th>Marca</th><th>Modelo</th><th>Color</th><th>Uso</th><th>Estado</th><th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<!-- Tabla -->
+<div class="tabla">
+  <h2>Listado de Vehículos</h2>
+  <table id="tablaVehiculos">
+    <thead>
+      <tr>
+        <th>Propietario</th><th>Parcela</th><th>Patente</th>
+        <th>Marca</th><th>Modelo</th><th>Color</th><th>Uso</th><th>Estado</th><th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBMNHZ3brOVB2ZSrRH3h5IDRc7SFsHlkFY",
-      authDomain: "registro-vehiculos-fbbba.firebaseapp.com",
-      databaseURL: "https://registro-vehiculos-fbbba-default-rtdb.firebaseio.com",
-      projectId: "registro-vehiculos-fbbba",
-      storageBucket: "registro-vehiculos-fbbba.firebasestorage.app",
-      messagingSenderId: "201370521397",
-      appId: "1:201370521397:web:798f17da74eeb7478d467c"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
+let esAdmin = false;
 
-    const form = document.getElementById("registroForm");
-    const tabla = document.querySelector("#tablaVehiculos tbody");
-    const salidaBusqueda = document.getElementById("resultadoBusqueda");
+const firebaseConfig = {
+  apiKey: "AIzaSyBMNHZ3brOVB2ZSrRH3h5IDRc7SFsHlkFY",
+  authDomain: "registro-vehiculos-fbbba.firebaseapp.com",
+  databaseURL: "https://registro-vehiculos-fbbba-default-rtdb.firebaseio.com",
+  projectId: "registro-vehiculos-fbbba",
+  storageBucket: "registro-vehiculos-fbbba.firebasestorage.app",
+  messagingSenderId: "201370521397",
+  appId: "1:201370521397:web:798f17da74eeb7478d467c"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    // 🔹 Forzar mayúsculas al escribir en patente
-    document.getElementById("patente").addEventListener("input", function() {
-      this.value = this.value.toUpperCase();
+const form = document.getElementById("registroForm");
+const tabla = document.querySelector("#tablaVehiculos tbody");
+const salidaBusqueda = document.getElementById("resultadoBusqueda");
+
+// Mayúsculas
+document.getElementById("patente").addEventListener("input", e => e.target.value = e.target.value.toUpperCase());
+document.getElementById("buscarPatente").addEventListener("input", e => e.target.value = e.target.value.toUpperCase());
+
+// Mostrar/Ocultar "otro"
+function toggleOtro(campo) {
+  const select = document.getElementById(campo);
+  const input = document.getElementById(campo + "_otro");
+  if (select.value === "otro") { input.style.display = "block"; input.required = true; }
+  else { input.style.display = "none"; input.required = false; }
+}
+
+// Agregar opción nueva y guardar en Firebase
+function agregarOpcion(selectId, valor) {
+  const select = document.getElementById(selectId);
+  let existe = Array.from(select.options).some(o => o.value.toLowerCase() === valor.toLowerCase());
+  if (!existe) {
+    const nueva = document.createElement("option");
+    nueva.value = valor; nueva.text = valor;
+    const opcionOtro = select.querySelector('option[value="otro"]');
+    select.insertBefore(nueva, opcionOtro);
+    db.ref("listas/" + selectId + "/" + valor).set(true);
+  }
+}
+
+// Cargar listas al inicio
+function cargarListas() {
+  ["marca", "modelo", "color"].forEach(lista => {
+    db.ref("listas/" + lista).once("value", snapshot => {
+      if (snapshot.exists()) snapshot.forEach(item => agregarOpcion(lista, item.key));
     });
-    document.getElementById("buscarPatente").addEventListener("input", function() {
-      this.value = this.value.toUpperCase();
-    });
+  });
+}
+cargarListas();
 
-    function toggleOtro(campo) {
-      const select = document.getElementById(campo);
-      const input = document.getElementById(campo + "_otro");
-      if (select.value === "otro") {
-        input.style.display = "block";
-        input.required = true;
-      } else {
-        input.style.display = "none";
-        input.required = false;
-      }
-    }
-
-    function agregarOpcion(selectId, valor) {
-      const select = document.getElementById(selectId);
-      let existe = false;
-      for (let i = 0; i < select.options.length; i++) {
-        if (select.options[i].value.toLowerCase() === valor.toLowerCase()) {
-          existe = true;
-          break;
-        }
-      }
-      if (!existe) {
-        const nueva = document.createElement("option");
-        nueva.value = valor;
-        nueva.text = valor;
-        const opcionOtro = select.querySelector('option[value="otro"]');
-        select.insertBefore(nueva, opcionOtro);
-        db.ref("listas/" + selectId + "/" + valor).set(true);
-      }
-    }
-
-    function cargarListas() {
-      ["marca", "modelo", "color"].forEach(lista => {
-        db.ref("listas/" + lista).once("value", snapshot => {
-          if (snapshot.exists()) {
-            snapshot.forEach(item => {
-              agregarOpcion(lista, item.key);
-            });
-          }
-        });
-      });
-    }
-    cargarListas();
-
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      let marca = document.getElementById("marca").value;
-      if (marca === "otro") {
-        marca = document.getElementById("marca_otro").value;
-        agregarOpcion("marca", marca);
-      }
-      let modelo = document.getElementById("modelo").value;
-      if (modelo === "otro") {
-        modelo = document.getElementById("modelo_otro").value;
-        agregarOpcion("modelo", modelo);
-      }
-      let color = document.getElementById("color").value;
-      if (color === "otro") {
-        color = document.getElementById("color_otro").value;
-        agregarOpcion("color", color);
-      }
-
-      const patente = document.getElementById("patente").value.toUpperCase();
-      const nuevo = {
-        dueno: document.getElementById("dueno").value,
-        parcela: document.getElementById("parcela").value,
-        patente: patente,
-        marca: marca,
-        modelo: modelo,
-        color: color,
-        uso: document.getElementById("uso").value,
-        estado: "pendiente"
-      };
-      db.ref("vehiculos/" + patente).set(nuevo);
-      form.reset();
-    });
-
-    db.ref("vehiculos").on("value", snapshot => {
-      tabla.innerHTML = "";
-      snapshot.forEach(child => {
-        const v = child.val();
-        const fila = document.createElement("tr");
-        fila.className = v.estado === "pendiente" ? "pendiente" : "autorizado";
-        fila.innerHTML = `
-          <td>${v.dueno}</td>
-          <td>${v.parcela}</td>
-          <td>${v.patente}</td>
-          <td>${v.marca}</td>
-          <td>${v.modelo}</td>
-          <td>${v.color}</td>
-          <td>${v.uso}</td>
-          <td>${v.estado}</td>
-          <td>
-            <button onclick="autorizarVehiculo('${child.key}')">Autorizar</button>
-            <button onclick="eliminarVehiculo('${child.key}')">Eliminar</button>
-          </td>
-        `;
-        tabla.appendChild(fila);
-      });
-    });
-
-    function buscarVehiculo() {
-      const patente = document.getElementById("buscarPatente").value.toUpperCase();
-      db.ref("vehiculos/" + patente).once("value").then(snapshot => {
-        if (snapshot.exists()) {
-          const v = snapshot.val();
-          salidaBusqueda.innerHTML = `✅ ${v.marca} ${v.modelo}, dueño ${v.dueno}, parcela ${v.parcela}, uso ${v.uso}, estado ${v.estado}`;
-        } else {
-          salidaBusqueda.innerHTML = "❌ No existe un vehículo con esa patente.";
+// Cargar modelos según marca
+function cargarModelos() {
+  const marca = document.getElementById("marca").value;
+  const modeloSelect = document.getElementById("modelo");
+  modeloSelect.innerHTML = '<option value="">Seleccione modelo...</option><option value="otro">Ingresar otro...</option>';
+  if (!marca || marca === "otro") return;
+  db.ref("listas/modelo").once("value", snapshot => {
+    if (snapshot.exists()) {
+      snapshot.forEach(item => {
+        if (item.key.startsWith(marca + "_")) {
+          const modelo = item.key.split("_")[1];
+          agregarOpcion("modelo", modelo);
         }
       });
     }
+  });
+}
 
-    // Admin login simple (puedes cambiar la clave)
-    function loginAdmin() {
-      const pass = document.getElementById("adminPass").value;
-      if (pass === "admin123") {
-        esAdmin = true;
-        document.getElementById("estadoAdmin").textContent = "Acceso concedido ✅";
-        // refrescar tabla para mostrar botones
-        db.ref("vehiculos").once("value", () => {});
-      } else {
-        alert("Contraseña incorrecta");
-      }
-    }
+// Guardar vehículo
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  let marca = document.getElementById("marca").value;
+  if (marca === "otro") marca = document.getElementById("marca_otro").value;
 
-    // Autorizar
-    function autorizarVehiculo(patente) {
-      db.ref("vehiculos/" + patente + "/estado").set("autorizado");
-    }
+  let modelo = document.getElementById("modelo").value;
+  if (modelo === "otro") modelo = document.getElementById("modelo_otro").value;
 
-    // Eliminar
-    function eliminarVehiculo(patente) {
-      if (confirm("¿Seguro que deseas eliminar " + patente + "?")) {
-        db.ref("vehiculos/" + patente).remove();
-      }
+  let color = document.getElementById("color").value;
+  if (color === "otro") color = document.getElementById("color_otro").value;
+
+  const patente = document.getElementById("patente").value.toUpperCase();
+
+  const nuevo = {
+    dueno: document.getElementById("dueno").value,
+    parcela: document.getElementById("parcela").value,
+    patente: patente,
+    marca: marca,
+    modelo: modelo,
+    color: color,
+    uso: document.getElementById("uso").value,
+    estado: "pendiente"
+  };
+  db.ref("vehiculos/" + patente).set(nuevo);
+
+  // Guardar opciones nuevas
+  agregarOpcion("marca", marca);
+  agregarOpcion("modelo", marca + "_" + modelo);
+  agregarOpcion("color", color);
+
+  form.reset();
+});
+
+// Mostrar tabla
+db.ref("vehiculos").on("value", snapshot => {
+  tabla.innerHTML = "";
+  snapshot.forEach(child => {
+    const v = child.val();
+    const fila = document.createElement("tr");
+    fila.className = v.estado === "pendiente" ? "pendiente" : "autorizado";
+    fila.innerHTML = `
+      <td>${v.dueno}</td>
+      <td>${v.parcela}</td>
+      <td>${v.patente}</td>
+      <td>${v.marca}</td>
+      <td>${v.modelo}</td>
+      <td>${v.color}</td>
+      <td>${v.uso}</td>
+      <td>${v.estado}</td>
+      <td>
+        ${esAdmin ? `<button onclick="autorizarVehiculo('${child.key}')">Autorizar</button>
+        <button onclick="eliminarVehiculo('${child.key}')">Eliminar</button>` : ""}
+      </td>
+    `;
+    tabla.appendChild(fila);
+  });
+});
+
+// Buscar vehículo
+function buscarVehiculo() {
+  const patente = document.getElementById("buscarPatente").value.toUpperCase();
+  db.ref("vehiculos/" + patente).once("value").then(snapshot => {
+    if (snapshot.exists()) {
+      const v = snapshot.val();
+      salidaBusqueda.innerHTML = `✅ ${v.marca} ${v.modelo}, dueño ${v.dueno}, parcela ${v.parcela}, uso ${v.uso}, estado ${v.estado}`;
+    } else {
+      salidaBusqueda.innerHTML = "❌ No existe un vehículo con esa patente.";
     }
-  </script>
+  });
+}
+
+// Login admin
+function loginAdmin() {
+  const pass = document.getElementById("adminPass").value;
+  if (pass === "admin123") {
+    esAdmin = true;
+    document.getElementById("estadoAdmin").textContent = "Admin activo ✅";
+    document.getElementById("adminPass").value = "";
+    db.ref("vehiculos").once("value", () => {}); // refrescar tabla
+  } else {
+    alert("Contraseña incorrecta ❌");
+  }
+}
+
+// Autorizar
+function autorizarVehiculo(patente) { db.ref("vehiculos/" + patente + "/estado").set("autorizado"); }
+
+// Eliminar
+function eliminarVehiculo(patente) {
+  if (confirm("¿Seguro que deseas eliminar " + patente + "?")) {
+    db.ref("vehiculos/" + patente).remove();
+  }
+}
+</script>
 </body>
 </html>
-
