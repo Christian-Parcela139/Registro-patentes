@@ -267,10 +267,25 @@
       });
     }
 
+    // Admin login simple (puedes cambiar la clave)
+    function loginAdmin() {
+      const pass = document.getElementById("adminPass").value;
+      if (pass === "admin123") {
+        esAdmin = true;
+        document.getElementById("estadoAdmin").textContent = "Acceso concedido ✅";
+        // refrescar tabla para mostrar botones
+        db.ref("vehiculos").once("value", () => {});
+      } else {
+        alert("Contraseña incorrecta");
+      }
+    }
+
+    // Autorizar
     function autorizarVehiculo(patente) {
       db.ref("vehiculos/" + patente + "/estado").set("autorizado");
     }
 
+    // Eliminar
     function eliminarVehiculo(patente) {
       if (confirm("¿Seguro que deseas eliminar " + patente + "?")) {
         db.ref("vehiculos/" + patente).remove();
@@ -279,3 +294,4 @@
   </script>
 </body>
 </html>
+
