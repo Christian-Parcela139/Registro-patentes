@@ -6,19 +6,23 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f4; }
     h1 { text-align: center; }
-    form, .buscador, .tabla {
+    form, .buscador, .tabla, .admin {
       background: white; padding: 20px; margin-bottom: 20px;
       border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     label { display: block; margin-top: 10px; }
     input { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; }
     button {
-      margin-top: 15px; padding: 10px 15px; border: none;
-      background: #0078d7; color: white; font-size: 14px; border-radius: 5px; cursor: pointer;
+      margin-top: 10px; padding: 8px 12px; border: none;
+      background: #0078d7; color: white; font-size: 14px;
+      border-radius: 5px; cursor: pointer;
     }
+    button:hover { background: #005fa3; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background: #0078d7; color: white; }
+    .pendiente { background: #fff3cd; }
+    .autorizado { background: #d4edda; }
   </style>
 </head>
 <body>
@@ -43,13 +47,23 @@
     <p id="resultadoBusqueda"></p>
   </div>
 
+  <!-- Admin -->
+  <div class="admin">
+    <h2>Acceso Administrador</h2>
+    <input type="password" id="adminPass" placeholder="Contraseña">
+    <button onclick="loginAdmin()">Ingresar</button>
+    <p id="estadoAdmin" style="color:green;"></p>
+  </div>
+
   <!-- Tabla -->
   <div class="tabla">
     <h2>Listado de Vehículos</h2>
     <table id="tablaVehiculos">
       <thead>
         <tr>
-          <th>Patente</th><th>Color</th><th>Marca</th><th>Modelo</th><th>Dueño</th><th>Parcela</th>
+          <th>Patente</th><th>Color</th><th>Marca</th>
+          <th>Modelo</th><th>Dueño</th><th>Parcela</th>
+          <th>Estado</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -57,27 +71,29 @@
   </div>
 
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
-    // 🔹 CONFIGURACIÓN DE FIREBASE (reemplaza con tus datos)
+    // 🔹 CONFIGURACIÓN FIREBASE
     const firebaseConfig = {
-  apiKey: "AIzaSyBMNHZ3brOVB2ZSrRH3h5IDRc7SFsHlkFY",
-  authDomain: "registro-vehiculos-fbbba.firebaseapp.com",
-  databaseURL: "https://registro-vehiculos-fbbba-default-rtdb.firebaseio.com",
-  projectId: "registro-vehiculos-fbbba",
-  storageBucket: "registro-vehiculos-fbbba.firebasestorage.app",
-  messagingSenderId: "201370521397",
-  appId: "1:201370521397:web:798f17da74eeb7478d467c"
-};
+      apiKey: "AIzaSyBMNHZ3brOVB2ZSrRH3h5IDRc7SFsHlkFY",
+      authDomain: "registro-vehiculos-fbbba.firebaseapp.com",
+      databaseURL: "https://registro-vehiculos-fbbba-default-rtdb.firebaseio.com",
+      projectId: "registro-vehiculos-fbbba",
+      storageBucket: "registro-vehiculos-fbbba.firebasestorage.app",
+      messagingSenderId: "201370521397",
+      appId: "1:201370521397:web:798f17da74eeb7478d467c"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+
+    let esAdmin = false; // 🔑 control acceso
 
     const form = document.getElementById("registroForm");
     const tabla = document.querySelector("#tablaVehiculos tbody");
     const salidaBusqueda = document.getElementById("resultadoBusqueda");
 
-    // Guardar vehículo
+    // Guardar vehículo (queda como pendiente)
     form.addEventListener("submit", e => {
       e.preventDefault();
       const patente = document.getElementById("patente").value.toUpperCase();
@@ -86,26 +102,36 @@
         marca: document.getElementById("marca").value,
         modelo: document.getElementById("modelo").value,
         dueno: document.getElementById("dueno").value,
-        parcela: document.getElementById("parcela").value
+        parcela: document.getElementById("parcela").value,
+        estado: "pendiente"
       };
       db.ref("vehiculos/" + patente).set(nuevo);
       form.reset();
     });
 
-    // Mostrar en tabla en tiempo real
+    // Mostrar en tabla
     db.ref("vehiculos").on("value", snapshot => {
       tabla.innerHTML = "";
       snapshot.forEach(child => {
         const v = child.val();
-        const fila = `<tr>
+        const fila = document.createElement("tr");
+        fila.className = v.estado === "pendiente" ? "pendiente" : "autorizado";
+        fila.innerHTML = `
           <td>${child.key}</td>
           <td>${v.color}</td>
           <td>${v.marca}</td>
           <td>${v.modelo}</td>
           <td>${v.dueno}</td>
           <td>${v.parcela}</td>
-        </tr>`;
-        tabla.innerHTML += fila;
+          <td>${v.estado}</td>
+          <td>
+            ${esAdmin ? `
+              <button onclick="autorizarVehiculo('${child.key}')">Autorizar</button>
+              <button onclick="eliminarVehiculo('${child.key}')">Eliminar</button>
+            ` : ''}
+          </td>
+        `;
+        tabla.appendChild(fila);
       });
     });
 
@@ -115,11 +141,36 @@
       db.ref("vehiculos/" + patente).once("value").then(snapshot => {
         if (snapshot.exists()) {
           const v = snapshot.val();
-          salidaBusqueda.innerHTML = `✅ Encontrado: ${v.marca} ${v.modelo}, dueño ${v.dueno}, parcela ${v.parcela}`;
+          salidaBusqueda.innerHTML = `✅ ${patente}: ${v.marca} ${v.modelo}, dueño ${v.dueno}, parcela ${v.parcela} (Estado: ${v.estado})`;
         } else {
           salidaBusqueda.innerHTML = "❌ No existe un vehículo con esa patente.";
         }
       });
+    }
+
+    // Admin login simple (puedes cambiar la clave)
+    function loginAdmin() {
+      const pass = document.getElementById("adminPass").value;
+      if (pass === "admin123") {
+        esAdmin = true;
+        document.getElementById("estadoAdmin").textContent = "Acceso concedido ✅";
+        // refrescar tabla para mostrar botones
+        db.ref("vehiculos").once("value", () => {});
+      } else {
+        alert("Contraseña incorrecta");
+      }
+    }
+
+    // Autorizar
+    function autorizarVehiculo(patente) {
+      db.ref("vehiculos/" + patente + "/estado").set("autorizado");
+    }
+
+    // Eliminar
+    function eliminarVehiculo(patente) {
+      if (confirm("¿Seguro que deseas eliminar " + patente + "?")) {
+        db.ref("vehiculos/" + patente).remove();
+      }
     }
   </script>
 </body>
