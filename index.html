@@ -11,7 +11,7 @@
       border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     label { display: block; margin-top: 10px; }
-    input { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; }
+    input, select { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; }
     button {
       margin-top: 10px; padding: 8px 12px; border: none;
       background: #0078d7; color: white; font-size: 14px;
@@ -30,12 +30,57 @@
 
   <!-- Formulario -->
   <form id="registroForm">
-    <label>Patente: <input type="text" id="patente" required></label>
-    <label>Color: <input type="text" id="color" required></label>
-    <label>Marca: <input type="text" id="marca" required></label>
-    <label>Modelo: <input type="text" id="modelo" required></label>
-    <label>Dueño: <input type="text" id="dueno" required></label>
+    <label>Propietario: <input type="text" id="dueno" required></label>
     <label>Parcela: <input type="text" id="parcela" required></label>
+    <label>Patente: <input type="text" id="patente" required></label>
+
+    <label>Marca:
+      <select id="marca" required onchange="cargarModelos()">
+        <option value="">Seleccione marca...</option>
+        <option value="Toyota">Toyota</option>
+        <option value="Nissan">Nissan</option>
+        <option value="Hyundai">Hyundai</option>
+        <option value="Chevrolet">Chevrolet</option>
+        <option value="Kia">Kia</option>
+        <option value="Ford">Ford</option>
+        <option value="Suzuki">Suzuki</option>
+        <option value="Volkswagen">Volkswagen</option>
+        <option value="Honda">Honda</option>
+        <option value="Mitsubishi">Mitsubishi</option>
+        <option value="Peugeot">Peugeot</option>
+        <option value="Renault">Renault</option>
+      </select>
+    </label>
+
+    <label>Modelo:
+      <select id="modelo" required>
+        <option value="">Seleccione modelo...</option>
+      </select>
+    </label>
+
+    <label>Color:
+      <select id="color" required>
+        <option value="">Seleccione color...</option>
+        <option value="Blanco">Blanco</option>
+        <option value="Negro">Negro</option>
+        <option value="Gris">Gris</option>
+        <option value="Plata">Plata</option>
+        <option value="Rojo">Rojo</option>
+        <option value="Azul">Azul</option>
+        <option value="Verde">Verde</option>
+        <option value="Amarillo">Amarillo</option>
+        <option value="Marrón">Marrón</option>
+      </select>
+    </label>
+
+    <label>Uso:
+      <select id="uso" required>
+        <option value="Personal">Personal</option>
+        <option value="Visita">Visita</option>
+        <option value="Trabajador">Trabajador</option>
+      </select>
+    </label>
+
     <button type="submit">Agregar Vehículo</button>
   </form>
 
@@ -61,8 +106,8 @@
     <table id="tablaVehiculos">
       <thead>
         <tr>
-          <th>Patente</th><th>Color</th><th>Marca</th>
-          <th>Modelo</th><th>Dueño</th><th>Parcela</th>
+          <th>Propietario</th><th>Parcela</th><th>Patente</th>
+          <th>Marca</th><th>Modelo</th><th>Color</th><th>Uso</th>
           <th>Estado</th><th>Acciones</th>
         </tr>
       </thead>
@@ -74,7 +119,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
-    // 🔹 CONFIGURACIÓN FIREBASE
+    // Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBMNHZ3brOVB2ZSrRH3h5IDRc7SFsHlkFY",
       authDomain: "registro-vehiculos-fbbba.firebaseapp.com",
@@ -87,29 +132,57 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let esAdmin = false; // 🔑 control acceso
+    let esAdmin = false;
 
     const form = document.getElementById("registroForm");
     const tabla = document.querySelector("#tablaVehiculos tbody");
     const salidaBusqueda = document.getElementById("resultadoBusqueda");
 
-    // Guardar vehículo (queda como pendiente)
+    // Modelos por marca
+    const modelos = {
+      "Toyota": ["Corolla","Hilux","Yaris","RAV4","Fortuner"],
+      "Nissan": ["Navara","Versa","Sentra","X-Trail","Patrol"],
+      "Hyundai": ["Tucson","Santa Fe","Accent","Elantra","Creta"],
+      "Chevrolet": ["Spark","Sail","Tracker","D-Max","Colorado"],
+      "Kia": ["Rio","Cerato","Sportage","Sorento","Picanto"],
+      "Ford": ["Ranger","Focus","Explorer","Fiesta","Mustang"],
+      "Suzuki": ["Swift","Baleno","Vitara","Jimny","Alto"],
+      "Volkswagen": ["Gol","Polo","Golf","Amarok","Tiguan"],
+      "Honda": ["Civic","HR-V","CR-V","Fit","Accord"],
+      "Mitsubishi": ["L200","Montero","ASX","Outlander","Eclipse Cross"],
+      "Peugeot": ["208","2008","3008","Partner","Expert"],
+      "Renault": ["Kwid","Duster","Captur","Logan","Sandero"]
+    };
+
+    function cargarModelos() {
+      const marca = document.getElementById("marca").value;
+      const modeloSel = document.getElementById("modelo");
+      modeloSel.innerHTML = "<option value=''>Seleccione modelo...</option>";
+      if (modelos[marca]) {
+        modelos[marca].forEach(m => {
+          modeloSel.innerHTML += `<option value="${m}">${m}</option>`;
+        });
+      }
+    }
+
+    // Guardar vehículo
     form.addEventListener("submit", e => {
       e.preventDefault();
       const patente = document.getElementById("patente").value.toUpperCase();
       const nuevo = {
-        color: document.getElementById("color").value,
-        marca: document.getElementById("marca").value,
-        modelo: document.getElementById("modelo").value,
         dueno: document.getElementById("dueno").value,
         parcela: document.getElementById("parcela").value,
+        marca: document.getElementById("marca").value,
+        modelo: document.getElementById("modelo").value,
+        color: document.getElementById("color").value,
+        uso: document.getElementById("uso").value,
         estado: "pendiente"
       };
       db.ref("vehiculos/" + patente).set(nuevo);
       form.reset();
     });
 
-    // Mostrar en tabla
+    // Mostrar tabla
     db.ref("vehiculos").on("value", snapshot => {
       tabla.innerHTML = "";
       snapshot.forEach(child => {
@@ -117,12 +190,13 @@
         const fila = document.createElement("tr");
         fila.className = v.estado === "pendiente" ? "pendiente" : "autorizado";
         fila.innerHTML = `
-          <td>${child.key}</td>
-          <td>${v.color}</td>
-          <td>${v.marca}</td>
-          <td>${v.modelo}</td>
           <td>${v.dueno}</td>
           <td>${v.parcela}</td>
+          <td>${child.key}</td>
+          <td>${v.marca}</td>
+          <td>${v.modelo}</td>
+          <td>${v.color}</td>
+          <td>${v.uso}</td>
           <td>${v.estado}</td>
           <td>
             ${esAdmin ? `
@@ -135,38 +209,33 @@
       });
     });
 
-    // Buscar vehículo
+    // Buscar
     function buscarVehiculo() {
       const patente = document.getElementById("buscarPatente").value.toUpperCase();
       db.ref("vehiculos/" + patente).once("value").then(snapshot => {
         if (snapshot.exists()) {
           const v = snapshot.val();
-          salidaBusqueda.innerHTML = `✅ ${patente}: ${v.marca} ${v.modelo}, dueño ${v.dueno}, parcela ${v.parcela} (Estado: ${v.estado})`;
+          salidaBusqueda.innerHTML = `✅ ${patente}: ${v.marca} ${v.modelo}, dueño ${v.dueno}, parcela ${v.parcela}, uso ${v.uso} (Estado: ${v.estado})`;
         } else {
           salidaBusqueda.innerHTML = "❌ No existe un vehículo con esa patente.";
         }
       });
     }
 
-    // Admin login simple (puedes cambiar la clave)
+    // Admin
     function loginAdmin() {
       const pass = document.getElementById("adminPass").value;
       if (pass === "admin123") {
         esAdmin = true;
         document.getElementById("estadoAdmin").textContent = "Acceso concedido ✅";
-        // refrescar tabla para mostrar botones
         db.ref("vehiculos").once("value", () => {});
       } else {
         alert("Contraseña incorrecta");
       }
     }
-
-    // Autorizar
     function autorizarVehiculo(patente) {
       db.ref("vehiculos/" + patente + "/estado").set("autorizado");
     }
-
-    // Eliminar
     function eliminarVehiculo(patente) {
       if (confirm("¿Seguro que deseas eliminar " + patente + "?")) {
         db.ref("vehiculos/" + patente).remove();
