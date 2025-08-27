@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -62,71 +62,20 @@
   <script>
     // 🔹 CONFIGURACIÓN DE FIREBASE (reemplaza con tus datos)
     const firebaseConfig = {
-      apiKey: "AIzaSyBMNHZ3brOVB2ZSrRH3h5IDRc7SFsHlkFY",
-      authDomain: "registro-vehiculos-fbbba.firebaseapp.com",
-      databaseURL: "https://registro-vehiculos-fbbba-default-rtdb.firebaseio.com",
-      projectId: "registro-vehiculos-fbbba",
-      storageBucket: "registro-vehiculos-fbbba.firebasestorage.app",
-      messagingSenderId: "201370521397",
-      appId: "1:201370521397:web:798f17da74eeb7478d467c"
-  <!-- Firebase compat -->
-<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
-<script>
-  // 🔹 CONFIGURACIÓN DE FIREBASE
-  const firebaseConfig = {
-    apiKey: "AIzaSyBMNHZ3brOVB2ZSrRH3h5IDRc7SFsHlkFY",
-    authDomain: "registro-vehiculos-fbbba.firebaseapp.com",
-    databaseURL: "https://registro-vehiculos-fbbba-default-rtdb.firebaseio.com",
-    projectId: "registro-vehiculos-fbbba",
-    storageBucket: "registro-vehiculos-fbbba.firebasestorage.app",
-    messagingSenderId: "201370521397",
-    appId: "1:201370521397:web:798f17da74eeb7478d467c"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  const form = document.getElementById("registroForm");
-  const tabla = document.querySelector("#tablaVehiculos tbody");
-  const salidaBusqueda = document.getElementById("resultadoBusqueda");
-
-  // Crear un registro de ejemplo si la base está vacía
-  db.ref("vehiculos").once("value").then(snapshot => {
-    if (!snapshot.exists()) {
-      db.ref("vehiculos/AAA111").set({
-        color: "Rojo",
-        marca: "Toyota",
-        modelo: "Corolla",
-        dueno: "Juan Pérez",
-        parcela: "15"
-      });
-    }
-  });
-
-  // Guardar vehículo
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-    const patente = document.getElementById("patente").value.trim().toUpperCase();
-    const nuevo = {
-      color: document.getElementById("color").value.trim(),
-      marca: document.getElementById("marca").value.trim(),
-      modelo: document.getElementById("modelo").value.trim(),
-      dueno: document.getElementById("dueno").value.trim(),
-      parcela: document.getElementById("parcela").value.trim()
+      apiKey: "TU_API_KEY",
+      authDomain: "registro-vehiculos.firebaseapp.com",
+      databaseURL: "https://registro-vehiculos-default-rtdb.firebaseio.com",
+      projectId: "registro-vehiculos",
+      storageBucket: "Registro-vehiculos.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdefg"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    if (!patente) { alert("Ingresa una patente válida"); return; }
-
-    db.ref("vehiculos/" + patente).set(nuevo)
-      .then(() => alert("🚗 Vehículo registrado"))
-      .catch(err => alert("Error: " + err.message));
 
     const form = document.getElementById("registroForm");
     const tabla = document.querySelector("#tablaVehiculos tbody");
     const salidaBusqueda = document.getElementById("resultadoBusqueda");
-    form.reset();
-  });
 
     // Guardar vehículo
     form.addEventListener("submit", e => {
@@ -141,30 +90,7 @@
       };
       db.ref("vehiculos/" + patente).set(nuevo);
       form.reset();
-  // Mostrar en tabla en tiempo real
-  db.ref("vehiculos").on("value", snapshot => {
-    tabla.innerHTML = "";
-    if (!snapshot.exists()) {
-      document.querySelector(".tabla h2").innerText = "Listado de Vehículos (Total: 0)";
-      return;
-    }
-    const filas = [];
-    snapshot.forEach(child => {
-      const v = child.val();
-      filas.push(`<tr>
-        <td>${child.key}</td>
-        <td>${v.color ?? ""}</td>
-        <td>${v.marca ?? ""}</td>
-        <td>${v.modelo ?? ""}</td>
-        <td>${v.dueno ?? ""}</td>
-        <td>${v.parcela ?? ""}</td>
-      </tr>`);
     });
-    filas.sort();
-    tabla.innerHTML = filas.join("");
-    document.querySelector(".tabla h2").innerText =
-      `Listado de Vehículos (Total: ${snapshot.numChildren()})`;
-  });
 
     // Mostrar en tabla en tiempo real
     db.ref("vehiculos").on("value", snapshot => {
@@ -181,22 +107,7 @@
         </tr>`;
         tabla.innerHTML += fila;
       });
-  // Buscar vehículo
-  function buscarVehiculo() {
-    const patente = document.getElementById("buscarPatente").value.trim().toUpperCase();
-    if (!patente) { salidaBusqueda.textContent = "Ingresa una patente."; return; }
-    db.ref("vehiculos/" + patente).once("value").then(snapshot => {
-      if (snapshot.exists()) {
-        const v = snapshot.val();
-        salidaBusqueda.innerHTML =
-          `✅ Encontrado: ${v.marca} ${v.modelo}, dueño ${v.dueno}, parcela ${v.parcela}`;
-      } else {
-        salidaBusqueda.textContent = "❌ No existe un vehículo con esa patente.";
-      }
     });
-  }
-  window.buscarVehiculo = buscarVehiculo;
-</script>
 
     // Buscar vehículo
     function buscarVehiculo() {
