@@ -39,6 +39,7 @@ th { background: #0078d7; color: white; }
     <input type="password" id="adminPass">
   </label>
   <button onclick="loginAdmin()">Iniciar Sesión Admin</button>
+  <button onclick="logoutAdmin()">Cerrar Sesión Admin</button>
   <span id="estadoAdmin" class="adminStatus"></span>
 </div>
 
@@ -132,7 +133,7 @@ th { background: #0078d7; color: white; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script>
-let esAdmin = false;
+let esAdmin = localStorage.getItem("adminActivo") === "true";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBMNHZ3brOVB2ZSrRH3h5IDRc7SFsHlkFY",
@@ -149,6 +150,10 @@ const db = firebase.database();
 const form = document.getElementById("registroForm");
 const tabla = document.querySelector("#tablaVehiculos tbody");
 const salidaBusqueda = document.getElementById("resultadoBusqueda");
+const estadoAdminSpan = document.getElementById("estadoAdmin");
+
+// Mostrar estado admin al cargar
+if(esAdmin) estadoAdminSpan.textContent = "Admin activo ✅";
 
 // Mayúsculas
 document.getElementById("patente").addEventListener("input", e => e.target.value = e.target.value.toUpperCase());
@@ -229,7 +234,6 @@ form.addEventListener("submit", e => {
   };
   db.ref("vehiculos/" + patente).set(nuevo);
 
-  // Guardar opciones nuevas
   agregarOpcion("marca", marca);
   agregarOpcion("modelo", marca + "_" + modelo);
   agregarOpcion("color", color);
@@ -280,12 +284,21 @@ function loginAdmin() {
   const pass = document.getElementById("adminPass").value;
   if (pass === "admin123") {
     esAdmin = true;
-    document.getElementById("estadoAdmin").textContent = "Admin activo ✅";
+    localStorage.setItem("adminActivo", "true");
+    estadoAdminSpan.textContent = "Admin activo ✅";
     document.getElementById("adminPass").value = "";
     db.ref("vehiculos").once("value", () => {}); // refrescar tabla
   } else {
     alert("Contraseña incorrecta ❌");
   }
+}
+
+// Logout admin
+function logoutAdmin() {
+  esAdmin = false;
+  localStorage.setItem("adminActivo", "false");
+  estadoAdminSpan.textContent = "Admin cerrado ❌";
+  db.ref("vehiculos").once("value", () => {}); // refrescar tabla
 }
 
 // Autorizar
